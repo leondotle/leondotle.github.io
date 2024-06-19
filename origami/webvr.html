@@ -15,7 +15,7 @@
 <body>
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
-    import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/ARButton.js';
+    import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/VRButton.js';
 
     let scene, camera, renderer, cube;
     
@@ -37,8 +37,8 @@
       renderer.xr.enabled = true;
       document.body.appendChild(renderer.domElement);
 
-      // Create AR Button
-      document.body.appendChild(ARButton.createButton(renderer));
+      // Create VR Button
+      document.body.appendChild(VRButton.createButton(renderer));
 
       // Create cube
       const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
