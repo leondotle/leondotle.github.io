@@ -1,77 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebXR Example with Text</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple VR Example with WebXR</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; }
+  </style>
 </head>
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/jsm/webxr/XRControllerModelFactory.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/jsm/webxr/XRHandModelFactory.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/jsm/loaders/FontLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/jsm/geometries/TextGeometry.js"></script>
-    <script>
-        let scene, camera, renderer, textMesh;
+  <button id="enter-vr">Enter VR</button>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@webxr-input-profiles/motion-controllers@1.0.0/dist/motion-controllers.min.js"></script>
+<script>
+  let scene, camera, renderer;
+  let xrSession = null;
 
-        // Initialize scene, camera, and renderer
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 5;
+  document.getElementById('enter-vr').addEventListener('click', onEnterVR);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.xr.enabled = true;
-            document.body.appendChild(renderer.domElement);
+  init();
 
-            // Create 2D text sprite
-            const loader = new THREE.FontLoader();
-            loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {
-                const geometry = new THREE.TextGeometry('Hello VR World!', {
-                    font: font,
-                    size: 0.5,
-                    height: 0.1,
-                });
+  function init() {
+    scene = new THREE.Scene();
 
-                const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-                textMesh = new THREE.Mesh(geometry, material);
-                textMesh.position.set(-1.5, 1, 0);
-                scene.add(textMesh);
-            });
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 1.6, 3); // Position camera at eye level
 
-            // Add a light
-            const light = new THREE.AmbientLight(0x404040); // soft white light
-            scene.add(light);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
+    document.body.appendChild(renderer.domElement);
 
-            animate();
-        }
+    window.addEventListener('resize', onWindowResize, false);
 
-        // Animation loop
-        function animate() {
-            renderer.setAnimationLoop(render);
-        }
+    addObjectsToScene();
 
-        // Render function
-        function render() {
-            renderer.render(scene, camera);
-        }
+    animate();
+  }
 
-        // Adjust camera and renderer on window resize
-        window.addEventListener('resize', function() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+  function addObjectsToScene() {
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(0, 1.6, -3);
+    scene.add(cube);
 
-        // Initialize the scene
-        init();
-    </script>
+    const floorGeometry = new THREE.PlaneGeometry(10, 10);
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+  }
+
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  function onEnterVR() {
+    if (navigator.xr) {
+      navigator.xr.requestSession('immersive-vr').then((session) => {
+        xrSession = session;
+        renderer.xr.setSession(session);
+      });
+    } else {
+      alert('WebXR not supported');
+    }
+  }
+
+  function animate() {
+    renderer.setAnimationLoop(render);
+  }
+
+  function render() {
+    renderer.render(scene, camera);
+  }
+  </script>
 </body>
 </html>
