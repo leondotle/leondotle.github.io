@@ -1,66 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Origami Model</title>
-    <style>
-        body { margin: 0; }
-        canvas { display: block; }
-    </style>
+  <title>3D Origami Model for VR</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script>
-        // Create the scene
-        const scene = new THREE.Scene();
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
+    import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/VRButton.js';
 
-        // Set up the camera
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
+    let scene, camera, renderer, cube;
+    
+    init();
+    animate();
 
-        // Set up the renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    function init() {
+      // Create scene
+      scene = new THREE.Scene();
 
-        // Set up OrbitControls
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-        controls.dampingFactor = 0.25;
-        controls.screenSpacePanning = false;
-        controls.maxPolarAngle = Math.PI / 2;
+      // Create camera
+      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10);
+      camera.position.z = 1;
 
-        // Load the GLB model
-        const loader = new THREE.GLTFLoader();
-        loader.load('model.glb', function (gltf) {
-            scene.add(gltf.scene);
-        }, undefined, function (error) {
-            console.error(error);
-        });
+      // Create renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.xr.enabled = true;
+      document.body.appendChild(renderer.domElement);
 
-        // Add some light
-        const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-        scene.add(light);
+      // Create VR Button
+      document.body.appendChild(VRButton.createButton(renderer));
 
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
+      // Create cube
+      // const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+      // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+      // cube = new THREE.Mesh(geometry, material);
+      // scene.add(cube);
+      // Load the GLB model
+      const loader = new THREE.GLTFLoader();
+      loader.load('model.glb', function (gltf) {
+          scene.add(gltf.scene);
+       }, undefined, function (error) {
+          console.error(error);
+       });
+        
+      // Resize handler
+      window.addEventListener('resize', onWindowResize, false);
+    }
 
-            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
 
-            renderer.render(scene, camera);
-        }
-        animate();
+    function animate() {
+      renderer.setAnimationLoop(render);
+    }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+    function render() {
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+  </script>
 </body>
 </html>
