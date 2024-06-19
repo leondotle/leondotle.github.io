@@ -7,12 +7,12 @@
   <style>
     body { margin: 0; }
     canvas { display: block; }
+    button { position: absolute; top: 20px; left: 20px; z-index: 100; }
   </style>
 </head>
 <body>
   <button id="enter-vr">Enter VR</button>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@webxr-input-profiles/motion-controllers@1.0.0/dist/motion-controllers.min.js"></script>
   <script>
     let scene, camera, renderer;
     let xrSession = null;
@@ -37,6 +37,7 @@
 
       addObjectsToScene();
 
+      console.log('Initialization complete');
       animate();
     }
 
@@ -55,7 +56,10 @@
       const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
       const floor = new THREE.Mesh(floorGeometry, floorMaterial);
       floor.rotation.x = Math.PI / 2;
+      floor.position.y = 0; // Position the floor at y = 0
       scene.add(floor);
+
+      console.log('Objects added to scene');
     }
 
     function onWindowResize() {
@@ -69,6 +73,14 @@
         navigator.xr.requestSession('immersive-vr').then((session) => {
           xrSession = session;
           renderer.xr.setSession(session);
+          session.requestReferenceSpace('local').then((referenceSpace) => {
+            renderer.xr.setReferenceSpaceType(referenceSpace);
+            console.log('Entered VR mode');
+          }).catch((err) => {
+            console.error('Failed to get reference space:', err);
+          });
+        }).catch((err) => {
+          console.error('Failed to enter VR mode:', err);
         });
       } else {
         alert('WebXR not supported');
