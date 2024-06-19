@@ -12,72 +12,157 @@
 </head>
 <body>
   <button id="enter-vr">Enter VR</button>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <canvas id="xr-canvas"></canvas>
   <script>
-    let scene, camera, renderer;
+    const canvas = document.getElementById('xr-canvas');
+    const gl = canvas.getContext('webgl', { xrCompatible: true });
     let xrSession = null;
-    let objects = [];
+    let xrReferenceSpace = null;
+    let animationFrameHandle = null;
+    let cubes = [];
 
     document.getElementById('enter-vr').addEventListener('click', onEnterVR);
 
-    init();
+    function initWebGL() {
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.enable(gl.DEPTH_TEST);
 
-    function init() {
-      scene = new THREE.Scene();
+      const vsSource = `
+        attribute vec4 aVertexPosition;
+        attribute vec4 aVertexColor;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        varying lowp vec4 vColor;
+        void main(void) {
+          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+          vColor = aVertexColor;
+        }
+      `;
 
-      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 1.6, 3); // Position camera at eye level
+      const fsSource = `
+        varying lowp vec4 vColor;
+        void main(void) {
+          gl_FragColor = vColor;
+        }
+      `;
 
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.xr.enabled = true;
-      document.body.appendChild(renderer.domElement);
+      const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+      const programInfo = {
+        program: shaderProgram,
+        attribLocations: {
+          vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+          vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
+        },
+        uniformLocations: {
+          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+          modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+        },
+      };
 
-      window.addEventListener('resize', onWindowResize, false);
+      cubes.push(createCube(gl, programInfo, [0.0, 0.0, -5.0]));
+      cubes.push(createCube(gl, programInfo, [2.0, 0.0, -5.0]));
+      cubes.push(createCube(gl, programInfo, [-2.0, 0.0, -5.0]));
 
-      addObjectsToScene();
-
-      console.log('Initialization complete');
-      animate();
+      return programInfo;
     }
 
-    function addObjectsToScene() {
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    function createCube(gl, programInfo, translation) {
+      const positions = [
+        -1.0, -1.0,  1.0,
+         1.0, -1.0,  1.0,
+         1.0,  1.0,  1.0,
+        -1.0,  1.0,  1.0,
+        -1.0, -1.0, -1.0,
+         1.0, -1.0, -1.0,
+         1.0,  1.0, -1.0,
+        -1.0,  1.0, -1.0,
+      ];
 
-      for (let i = 0; i < 5; i++) {
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(i * 1.5 - 3, 1.6, -3);
-        scene.add(cube);
-        objects.push(cube);
+      const colors = [
+        1.0,  1.0,  1.0,  1.0,
+        1.0,  0.0,  0.0,  1.0,
+        0.0,  1.0,  0.0,  1.0,
+        0.0,  0.0,  1.0,  1.0,
+        1.0,  1.0,  0.0,  1.0,
+        1.0,  0.0,  1.0,  1.0,
+        0.0,  1.0,  1.0,  1.0,
+        0.0,  0.0,  0.0,  1.0,
+      ];
+
+      const indices = [
+        0,  1,  2,      0,  2,  3,
+        4,  5,  6,      4,  6,  7,
+        0,  1,  5,      0,  5,  4,
+        2,  3,  7,      2,  7,  6,
+        0,  3,  7,      0,  7,  4,
+        1,  2,  6,      1,  6,  5,
+      ];
+
+      const positionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+      const colorBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+      const indexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+      return {
+        position: positionBuffer,
+        color: colorBuffer,
+        indices: indexBuffer,
+        vertexCount: indices.length,
+        translation: translation,
+        rotation: [0, 0, 0],
+      };
+    }
+
+    function initShaderProgram(gl, vsSource, fsSource) {
+      const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+      const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+      const shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vertexShader);
+      gl.attachShader(shaderProgram, fragmentShader);
+      gl.linkProgram(shaderProgram);
+
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        return null;
       }
 
-      const floorGeometry = new THREE.PlaneGeometry(10, 10);
-      const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
-      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.rotation.x = Math.PI / 2;
-      floor.position.y = 0; // Position the floor at y = 0
-      scene.add(floor);
-
-      console.log('Objects added to scene');
+      return shaderProgram;
     }
 
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+    function loadShader(gl, type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+
+      return shader;
     }
 
     function onEnterVR() {
       if (navigator.xr) {
         navigator.xr.requestSession('immersive-vr').then((session) => {
           xrSession = session;
-          renderer.xr.setSession(session);
-          session.requestReferenceSpace('local').then((referenceSpace) => {
-            renderer.xr.setReferenceSpaceType(referenceSpace);
-            console.log('Entered VR mode');
-          }).catch((err) => {
-            console.error('Failed to get reference space:', err);
+          session.addEventListener('end', onSessionEnded);
+
+          const glLayer = new XRWebGLLayer(session, gl);
+          session.updateRenderState({ baseLayer: glLayer });
+
+          session.requestReferenceSpace('local').then((refSpace) => {
+            xrReferenceSpace = refSpace;
+            session.requestAnimationFrame(onXRFrame);
           });
         }).catch((err) => {
           console.error('Failed to enter VR mode:', err);
@@ -87,18 +172,52 @@
       }
     }
 
-    function animate() {
-      renderer.setAnimationLoop(render);
+    function onSessionEnded(event) {
+      xrSession = null;
+      if (animationFrameHandle) {
+        window.cancelAnimationFrame(animationFrameHandle);
+        animationFrameHandle = null;
+      }
     }
 
-    function render() {
-      objects.forEach((object) => {
-        object.rotation.x += 0.01;
-        object.rotation.y += 0.01;
-      });
+    function onXRFrame(t, frame) {
+      const session = frame.session;
+      const pose = frame.getViewerPose(xrReferenceSpace);
 
-      renderer.render(scene, camera);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      if (pose) {
+        const glLayer = session.renderState.baseLayer;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
+
+        for (const view of pose.views) {
+          const viewport = glLayer.getViewport(view);
+          gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+          const projectionMatrix = view.projectionMatrix;
+          const viewMatrix = view.transform.inverse.matrix;
+
+          cubes.forEach((cube) => {
+            cube.rotation[0] += 0.01;
+            cube.rotation[1] += 0.01;
+
+            const modelViewMatrix = mat4.create();
+            mat4.translate(modelViewMatrix, modelViewMatrix, cube.translation);
+            mat4.rotateX(modelViewMatrix, modelViewMatrix, cube.rotation[0]);
+            mat4.rotateY(modelViewMatrix, modelViewMatrix, cube.rotation[1]);
+
+            drawCube(gl, cube, projectionMatrix, viewMatrix, modelViewMatrix);
+          });
+        }
+      }
+
+      session.requestAnimationFrame(onXRFrame);
     }
-  </script>
-</body>
-</html>
+
+    function drawCube(gl, cube, projectionMatrix, viewMatrix, modelViewMatrix) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, cube.position);
+      gl.vertexAttribPointer(
+          programInfo.attribLocations.vertexPosition,
+          3, // numComponents
+          gl.FLOAT, //
