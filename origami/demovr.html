@@ -20,7 +20,7 @@
     // import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
     import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/VRButton.js';
 
-    let scene, camera, renderer, cube;
+    let scene, camera, renderer, controls;
     
     init();
     animate();
@@ -49,7 +49,7 @@
       // scene.add(cube);
 
       // Set up OrbitControls
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
       controls.dampingFactor = 0.25;
       controls.screenSpacePanning = false;
