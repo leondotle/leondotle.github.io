@@ -11,7 +11,7 @@
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
         // Create the scene
@@ -48,11 +48,12 @@
             console.log('There was an error loading ' + url);
         };
 
-        // Load the FBX model
-        const loader = new THREE.FBXLoader(manager);
-        loader.load('unicorn.fbx', function (fbx) {
-            fbx.scale.set(0.01, 0.01, 0.01); // Adjust the scale of the model if necessary
-            scene.add(fbx);
+        // Load the GLB model
+        const loader = new THREE.GLTFLoader(manager);
+        loader.load('unicorn.glb', function (gltf) {
+            const model = gltf.scene;
+            model.scale.set(0.01, 0.01, 0.01); // Adjust the scale of the model if necessary
+            scene.add(model);
         }, undefined, function (error) {
             console.error(error);
         });
