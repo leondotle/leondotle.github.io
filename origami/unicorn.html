@@ -48,10 +48,12 @@
             console.log('There was an error loading ' + url);
         };
 
+        let model;
+
         // Load the GLB model
         const loader = new THREE.GLTFLoader(manager);
         loader.load('unicorn.glb', function (gltf) {
-            const model = gltf.scene;
+            model = gltf.scene;
             model.scale.set(0.01, 0.01, 0.01); // Adjust the scale of the model if necessary
             scene.add(model);
         }, undefined, function (error) {
@@ -69,6 +71,10 @@
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+
+            if (model) {
+                model.rotation.y += 0.01; // Rotate the model
+            }
 
             controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
 
