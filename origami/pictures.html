@@ -1,0 +1,82 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calming Three.js Scene</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/libs/dat.gui.min.js"></script>
+    <script>
+        // Scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Water surface
+        const waterGeometry = new THREE.PlaneGeometry(100, 100);
+        const waterMaterial = new THREE.MeshPhongMaterial({
+            color: 0x0044ff,
+            shininess: 100,
+            opacity: 0.6,
+            transparent: true
+        });
+        const water = new THREE.Mesh(waterGeometry, waterMaterial);
+        water.rotation.x = -Math.PI / 2;
+        scene.add(water);
+
+        // Tree
+        const treeGeometry = new THREE.ConeGeometry(1, 5, 8);
+        const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+        const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.5);
+        const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+        const tree = new THREE.Group();
+        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+        trunk.position.y = 0.75;
+        tree.add(trunk);
+        const foliage = new THREE.Mesh(treeGeometry, treeMaterial);
+        foliage.position.y = 3.25;
+        tree.add(foliage);
+        tree.position.set(0, 0, -10);
+        scene.add(tree);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 2);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+
+        // Camera position
+        camera.position.z = 15;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
