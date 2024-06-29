@@ -75,7 +75,8 @@
 
         // Animation loop
         function animate() {
-            requestAnimationFrame(animate);
+            // requestAnimationFrame(animate);
+            renderer.setAnimationLoop(render);
 
             if (model) {
                 model.rotation.y += 0.01; // Rotate the model
