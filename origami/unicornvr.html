@@ -88,6 +88,21 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // Adjust model scale and position for VR mode
+        renderer.xr.addEventListener('sessionstart', () => {
+            if (model) {
+                model.scale.set(0.1, 0.1, 0.1); // Adjust the scale for VR mode
+                model.position.set(0, 1.6, -1); // Adjust the position for VR mode
+            }
+        });
+
+        renderer.xr.addEventListener('sessionend', () => {
+            if (model) {
+                model.scale.set(0.01, 0.01, 0.01); // Reset the scale when exiting VR mode
+                model.position.set(0, 0, 0); // Reset the position when exiting VR mode
+            }
+        });	    
     </script>
 </body>
 </html>
