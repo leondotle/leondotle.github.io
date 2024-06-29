@@ -38,6 +38,12 @@
         controls.screenSpacePanning = false;
         controls.maxPolarAngle = Math.PI / 2;
 
+        // Add some basic geometry to verify rendering
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
         // Add loading manager to handle loading events
         const manager = new THREE.LoadingManager();
         manager.onStart = function (url, itemsLoaded, itemsTotal) {
