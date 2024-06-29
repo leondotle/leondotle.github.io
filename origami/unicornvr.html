@@ -76,15 +76,14 @@
         // Animation loop
         function animate() {
             // requestAnimationFrame(animate);
-            renderer.setAnimationLoop(render);
-
             if (model) {
                 model.rotation.y += 0.01; // Rotate the model
-            }
-
+            }            
             controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
 
-            renderer.render(scene, camera);
+            renderer.setAnimationLoop( function () {
+	            renderer.render( scene, camera );
+            } );            
         }
         animate();
 
