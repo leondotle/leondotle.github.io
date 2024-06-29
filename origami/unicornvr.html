@@ -10,11 +10,11 @@
     </style>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
+    <script>
+       import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
+       import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/VRButton.js';
 
         // Create the scene
         const scene = new THREE.Scene();
@@ -26,10 +26,9 @@
         // Set up the renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.xr.enabled = true; // Enable VR mode
+        renderer.xr.enabled = true;
         document.body.appendChild(renderer.domElement);
-
-        // Add the VR button
+        // Create VR Button
         document.body.appendChild(VRButton.createButton(renderer));
 
         // Set up OrbitControls
@@ -76,15 +75,15 @@
 
         // Animation loop
         function animate() {
-            renderer.setAnimationLoop(() => {
-                if (model) {
-                    model.rotation.y += 0.01; // Rotate the model
-                }
+            requestAnimationFrame(animate);
 
-                controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+            if (model) {
+                model.rotation.y += 0.01; // Rotate the model
+            }
 
-                renderer.render(scene, camera);
-            });
+            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+
+            renderer.render(scene, camera);
         }
         animate();
 
