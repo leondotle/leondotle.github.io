@@ -75,6 +75,11 @@
       cube.rotation.y += 0.01;
       renderer.render(scene, camera);
     }
+
+    // Function to update cube color dynamically
+    window.updateCubeColor = function(color) {
+      cube.material.color.setHex(color);
+    }    
   </script>
 </body>
 </html>
