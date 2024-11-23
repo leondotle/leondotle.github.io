@@ -11,7 +11,7 @@
     <div>
         <label for="prompt">Enter your prompt:</label>
         <input type="text" id="prompt" size="50">
-        <button onclick="generateText()">Generate Text</button>
+        <button id="generate-button">Generate Text</button>
     </div>
     <div id="output">
         <h3>Output:</h3>
@@ -47,6 +47,8 @@
                 document.getElementById("generated-text").textContent = "Error generating text. Please try again.";
             }
         }
+
+        document.getElementById("generate-button").addEventListener("click", generateText);
     </script>
 </body>
 </html>
