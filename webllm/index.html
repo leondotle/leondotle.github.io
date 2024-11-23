@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Llama 3.2 1B with Transformers.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@latest"></script>
+</head>
+<body>
+    <h1>Llama 3.2 1B Text Generator</h1>
+    <div>
+        <label for="prompt">Enter your prompt:</label>
+        <input type="text" id="prompt" size="50">
+        <button onclick="generateText()">Generate Text</button>
+    </div>
+    <div id="output">
+        <h3>Output:</h3>
+        <p id="generated-text"></p>
+    </div>
+
+    <script>
+        async function loadModel() {
+            const generator = await window.transformers.pipeline('text-generation', 'onnx-community/Llama-3.2-1B-Instruct');
+            return generator;
+        }
+
+        async function generateText() {
+            const prompt = document.getElementById("prompt").value;
+            if (!prompt) {
+                alert("Please enter a prompt!");
+                return;
+            }
+            
+            const generator = await loadModel();
+            const messages = [
+                { role: 'system', content: 'You are a helpful assistant.' },
+                { role: 'user', content: prompt },
+            ];
+            
+            try {
+                const output = await generator(messages, { max_new_tokens: 128 });
+                document.getElementById("generated-text").textContent = output[0].generated_text.at(-1).content;
+            } catch (error) {
+                console.error("Error generating text:", error);
+                document.getElementById("generated-text").textContent = "Error generating text. Please try again.";
+            }
+        }
+    </script>
+</body>
+</html>
