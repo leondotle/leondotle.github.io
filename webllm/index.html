@@ -1,60 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Transformers.js LLM Example</title>
-<!-- Include the Transformers.js library -->
-<script src="https://unpkg.com/@xenova/transformers/dist/transformers.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+        }
+        #imageContainer {
+            margin-top: 20px;
+        }
+        #imageContainer img {
+            max-width: 100%;
+            height: auto;
+            transform: scale(1); /* Doubles the size */
+        }
+        #displayText {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            text-align: center;
+            width: 90%;
+        }
+        #modelContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            z-index: 1;
+        }
+    </style>
 </head>
 <body>
+    <div id="imageContainer">
+        <img id="dynamicImage" src="oasis/Acorns 1.jpg" alt="Beautiful Landscape">
+    </div>
+    <div id="displayText">A serene description of the landscape goes here.</div>
+    <button onclick="readTextAloud()">Read Aloud</button>
+    <div id="modelContainer"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+        
+        // Create the scene
+        const scene = new THREE.Scene();
 
-<h1>Transformers.js LLM Example</h1>
+        // Set up the camera
+        const camera = new THREE.PerspectiveCamera(75, 300 / 300, 0.1, 1000); // Fixed size for the model container
+        camera.position.set(0, 2, 5);
 
-<!-- Input area for user text -->
-<textarea id="input-text" rows="4" cols="50" placeholder="Type your text here..."></textarea>
-<br><br>
-<button id="generate-btn">Generate</button>
+        // Set up the renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(100, 100); // Fixed size for the model container
+        document.getElementById('modelContainer').appendChild(renderer.domElement);
 
-<p><strong>Output:</strong></p>
-<!-- Area to display the generated text -->
-<div id="output-text"></div>
+        // Set up OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI / 2;
 
-<script>
-  // Run the script after the page is fully loaded
-  document.addEventListener('DOMContentLoaded', async () => {
-    const generateBtn = document.getElementById('generate-btn');
-    const outputDiv = document.getElementById('output-text');
+        // Add loading manager to handle loading events
+        const manager = new THREE.LoadingManager();
+        manager.onStart = function (url, itemsLoaded, itemsTotal) {
+            console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+        };
+        manager.onLoad = function () {
+            console.log('Loading complete!');
+        };
+        manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+            console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+        };
+        manager.onError = function (url) {
+            console.log('There was an error loading ' + url);
+        };
 
-    // Display loading message
-    outputDiv.textContent = 'Loading model...';
+        let model;
+        let modelName = getUrlParameter('model') || 'rbrain.glb';
+        let modelScale = parseFloat(getUrlParameter('scale')) || 10;
+        let modelColor = getUrlParameter('color') || '#00ff00'; // default to red
 
-    // Load the text-generation pipeline with GPT-2 model
-    const generator = await window.transformers.pipeline('text-generation', 'gpt2');
+        // Load the GLB model
+        const loader = new THREE.GLTFLoader(manager);
+        loader.load(modelName, function (gltf) {
+            model = gltf.scene;
+            model.position.set(0, 0, 0);
+            model.scale.set(modelScale, modelScale, modelScale);
 
-    // Update the message once the model is loaded
-    outputDiv.textContent = 'Model loaded. Ready to generate text.';
+            // Change the color of the model
+            model.traverse(function (child) {
+                if (child.isMesh) {
+                    child.material.color.set(modelColor);
+                }
+            });
 
-    // Add event listener to the generate button
-    generateBtn.addEventListener('click', async () => {
-      const inputText = document.getElementById('input-text').value;
+            scene.add(model);
+        }, undefined, function (error) {
+            console.error(error);
+        });
 
-      // Display generating message
-      outputDiv.textContent = 'Generating...';
+        // Add some light
+        const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+        scene.add(hemisphereLight);
 
-      try {
-        // Generate text using the input
-        const output = await generator(inputText, { max_length: 50 });
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
 
-        // Display the generated text
-        outputDiv.textContent = output[0].generated_text;
-      } catch (error) {
-        // Handle errors (e.g., if the model fails to generate)
-        outputDiv.textContent = 'An error occurred during generation.';
-        console.error(error);
-      }
-    });
-  });
-</script>
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
 
+            if (model) {
+                model.rotation.y += 0.01; // Rotate the model
+            }
+
+            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // JavaScript function to update the color of the model dynamically
+       function updateModelColor(color) {
+            if (model) {
+                model.traverse(function (child) {
+                    if (child.isMesh) {
+                        child.material.color.set(color);
+                    }
+                });
+            }
+        }
+        // Expose the function to the global scope
+        window.updateModelColor = updateModelColor;
+
+        // JavaScript function to update the text above the cube
+        window.displayTextAboveCube = function(inputString) {
+          document.getElementById('displayText').innerText = inputString;
+        }        
+
+        // JavaScript function to update the image dynamically
+        function updateImage(imageName) {
+            const imageElement = document.getElementById('dynamicImage');
+            imageElement.src = imageName;
+        }
+
+        window.updateImage = updateImage;
+
+        // Function to read aloud the text from the displayText element
+        function readTextAloud() {
+            // Stop any ongoing speech
+            window.speechSynthesis.cancel();            
+            const textElement = document.getElementById('displayText');
+            const textToRead = textElement.innerText;
+
+            // Create a new SpeechSynthesisUtterance instance
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+
+            // Set voice properties (optional)
+            utterance.lang = 'en-US'; // Set the language
+            utterance.pitch = 1;      // Set pitch (0 to 2)
+            utterance.rate = 1;       // Set speed (0.1 to 10)
+            utterance.volume = 1;     // Set volume (0 to 1)
+
+            // Speak the text
+            window.speechSynthesis.speak(utterance);
+        }
+
+        window.readTextAloud = readTextAloud;
+
+    </script>
 </body>
 </html>
+
