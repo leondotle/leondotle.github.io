@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoldEDU | Origami Recipes for Youth Mental Health</title>
+  <style>
+    /* Reset & Base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #faf9f5; color: #333; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    :root { --accent: #2a9d8f; --accent-hover: #21776e; }
+
+    /* Header */
+    header { background-color: #ffffff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--accent); }
+    header h1 { font-size: 1.8rem; color: var(--accent); }
+    nav a { margin-left: 1.5rem; font-weight: 600; color: #555; transition: color 0.2s; }
+    nav a:hover { color: var(--accent); }
+
+    /* Hero */
+    .hero { background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%); height: 60vh; display: flex; justify-content: center; align-items: center; text-align: center; padding: 0 1rem; }
+    .hero h2 { font-size: 2.5rem; color: var(--accent); padding: 0.5rem 1rem; background-color: rgba(255,255,255,0.8); border-radius: 8px; }
+
+    /* Sections */
+    .section { padding: 2.5rem 1.5rem; max-width: 1000px; margin: auto; }
+    .section h3 { font-size: 2rem; color: var(--accent); margin-bottom: 1rem; text-align: center; }
+    .section p { margin-bottom: 1rem; }
+
+    /* Recipe Cards */
+    .recipes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+    .recipe-card { background-color: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+    .recipe-card h4 { color: var(--accent); margin-bottom: 0.5rem; }
+    .recipe-card ol { margin-left: 1.2rem; margin-bottom: 1rem; }
+    .recipe-card li { margin-bottom: 0.5rem; }
+    .benefits { list-style: none; margin-top: 1rem; }
+    .benefits li::before { content: '✔️'; margin-right: 0.5rem; color: var(--accent); }
+
+    /* CTA */
+    .cta { text-align: center; margin-top: 2rem; }
+    .cta button { background-color: var(--accent); color: #fff; border: none; padding: 0.8rem 1.8rem; font-size: 1rem; border-radius: 8px; cursor: pointer; margin: 0.5rem; transition: background-color 0.3s; }
+    .cta button:hover { background-color: var(--accent-hover); }
+
+    /* Footer */
+    footer { background-color: #ffffff; text-align: center; padding: 1.5rem; font-size: 0.9rem; color: #777; border-top: 1px solid #eee; margin-top: 2rem; }
+
+    /* Responsive */
+    @media (max-width: 600px) { .hero h2 { font-size: 2rem; } header h1 { font-size: 1.5rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FoldEDU</h1>
+    <nav>
+      <a href="#hero">Home</a>
+      <a href="#recipes">Recipes</a>
+      <a href="#benefits">Benefits</a>
+      <a href="#download">Download</a>
+    </nav>
+  </header>
+
+  <div class="hero" id="hero">
+    <h2>Origami Recipes for Youth Mental Health</h2>
+  </div>
+
+  <section class="section" id="recipes">
+    <h3>Calming Origami Recipes</h3>
+    <div class="recipes">
+      <div class="recipe-card">
+        <h4>🦢 Calming Crane</h4>
+        <p>A classic crane fold to foster focus and mindfulness.</p>
+        <ol>
+          <li>Start with a square sheet of paper.</li>
+          <li>Fold diagonally both ways and unfold.</li>
+          <li>Create a square base and form bird base.</li>
+          <li>Fold wings, head, and tail to complete the crane.</li>
+        </ol>
+        <p><strong>Particularly helpful for:</strong></p>
+        <ul class="benefits">
+          <li>Anxiety reduction through rhythmic folding</li>
+          <li>Improved fine motor control</li>
+          <li>Encouraging deep breathing with each step</li>
+        </ul>
+      </div>
+      <div class="recipe-card">
+        <h4>⭐️ Focus Star</h4>
+        <p>Fold a simple origami star to train sustained attention.</p>
+        <ol>
+          <li>Cut five identical strips of paper.</li>
+          <li>Fold each into a pentagon-shaped loop.</li>
+          <li>Interlock loops one by one to form a star.</li>
+          <li>Flatten and adjust points for symmetry.</li>
+        </ol>
+        <p><strong>Particularly helpful for:</strong></p>
+        <ul class="benefits">
+          <li>Boosting executive function in ADHD</li>
+          <li>Practicing sequential planning</li>
+          <li>Visual-spatial skill development</li>
+        </ul>
+      </div>
+      <div class="recipe-card">
+        <h4>🍂 Zen Leaf</h4>
+        <p>A soothing leaf model to support sensory regulation.</p>
+        <ol>
+          <li>Begin with a rectangle of paper.</li>
+          <li>Fold in half lengthwise, then unfold.</li>
+          <li>Create accordion folds across width.</li>
+          <li>Shape the top into a gentle curve for leaf tip.</li>
+        </ol>
+        <p><strong>Particularly helpful for:</strong></p>
+        <ul class="benefits">
+          <li>Providing tactile feedback for autism</li>
+          <li>Enhancing patience and persistence</li>
+          <li>Encouraging rhythmic hand motions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="benefits">
+    <h3>Why Origami Helps</h3>
+    <ul class="benefits">
+      <li>Supports mindfulness and stress relief</li>
+      <li>Strengthens concentration and working memory</li>
+      <li>Enhances fine motor skills and hand-eye coordination</li>
+      <li>Offers a creative outlet for emotional expression</li>
+    </ul>
+  </section>
+
+  <section class="section" id="download">
+    <h3>Get Your Origami Mental Health Kit</h3>
+    <p>Download free PDF guides and join our online workshops to start folding for wellness.</p>
+    <div class="cta">
+      <button>Download PDF</button>
+      <button>Join Workshop</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 FoldEDU | Empowering mental health through creative folding</p>
+  </footer>
+</body>
+</html>
